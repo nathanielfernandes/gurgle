@@ -31,6 +31,7 @@ class Gurgle {
 
     static async search (term, res) {
         term = term.replace(" ", "+");
+        res.setHeader('Content-Type', 'application/json')
 
         const c_found = Gurgle.cache[term];
         if (c_found !== undefined) {
