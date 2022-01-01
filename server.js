@@ -11,10 +11,18 @@ class Gurgle {
     static {
         console.log("Setting Up");
 
-        puppeteer.launch().then((pup) => {
-            browser = pup
+        puppeteer.launch({
+            headless: true,
+            args: [
+                "--disable-gpu",
+                "--disable-dev-shm-usage",
+                "--disable-setuid-sandbox",
+                "--no-sandbox",
+            ]
+        }).then((pup) => {
+            Gurgle.browser = pup
             for (let i = 0; i < 20; i++) {
-                browser.newPage().then(p => pages.push(p));        
+                Gurgle.browser.newPage().then(p => Gurgle.pages.push(p));        
             }
         });
 
@@ -24,19 +32,18 @@ class Gurgle {
     static async search (term, res) {
         term = term.replace(" ", "+");
 
-        const c_found = cache[term];
+        const c_found = Gurgle.cache[term];
         if (c_found !== undefined) {
             if ((Date.now() - c_found.timestamp)/1000 < 3600) {
                 res.send(c_found.found);
-                console.log(c_found.timestamp);
                 return;
             }
         }
     
-        const page = pages.pop();
+        const page = Gurgle.pages.pop();
         let f = false;
         if (page === null) {
-            page = await browser.newPage();
+            page = await Gurgle.browser.newPage();
             f = true;
         }
     
@@ -46,13 +53,13 @@ class Gurgle {
     
         let found = [...content.matchAll(/http[s]*:\/\/[a-z\-_0-9\/.]+\.[a-z.]{2,3}\/[a-z0-9\-_\/._~:?#\[\]@!$&'()*+,;=%]*[a-z0-9]+\.(:?jpg|jpeg|png|gif)/gi)].map(match => match[0]);
         found = JSON.stringify(found.slice(4));
-        cache[term] = {timestamp: Date.now(), found};
+        Gurgle.cache[term] = {timestamp: Date.now(), found};
         res.send(found);
         
         await page.close();
 
         if (!f) {
-            pages.push(await browser.newPage());
+            Gurgle.pages.push(await Gurgle.browser.newPage());
         }
     }
 }
