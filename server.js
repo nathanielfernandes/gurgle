@@ -52,7 +52,11 @@ class Gurgle {
         const content = await page.content();
     
         let found = [...content.matchAll(/http[s]*:\/\/[a-z\-_0-9\/.]+\.[a-z.]{2,3}\/[a-z0-9\-_\/._~:?#\[\]@!$&'()*+,;=%]*[a-z0-9]+\.(:?jpg|jpeg|png|gif)/gi)].map(match => match[0]);
-        found = JSON.stringify(found.slice(4));
+        if (found.length <= 3) {
+            found = []
+        } else {
+            found = JSON.stringify(found.slice(4));
+        }
         Gurgle.cache[term] = {timestamp: Date.now(), found};
         res.send(found);
         
