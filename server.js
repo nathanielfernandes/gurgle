@@ -66,6 +66,6 @@ app.get('/:search', async (req, res) => {
     await Gurgle.search(search, res);
 })
 
-app.listen(port, () => {
+app.listen(80, () => {
   console.log(`Gurgle listening at http://0.0.0.0:80`)
 })
