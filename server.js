@@ -30,16 +30,15 @@ class Gurgle {
     }
 
     static async search (term, res) {
-        term = term.replace(" ", "+");
         res.setHeader('Content-Type', 'application/json')
 
-        const c_found = Gurgle.cache[term];
-        if (c_found !== undefined) {
-            if ((Date.now() - c_found.timestamp)/1000 < 3600) {
-                res.send(c_found.found);
-                return;
-            }
-        }
+        // const c_found = Gurgle.cache[term];
+        // if (c_found !== undefined) {
+        //     if ((Date.now() - c_found.timestamp)/1000 < 3600) {
+        //         res.send(c_found.found);
+        //         return;
+        //     }
+        // }
     
         const page = Gurgle.pages.pop();
         let f = false;
@@ -48,18 +47,15 @@ class Gurgle {
             f = true;
         }
     
-        await page.goto("https://www.google.com/search?tbm=isch&q=" + term);
+        await page.goto("https://www.amazon.ca/dp/" + term);
     
         const content = await page.content();
-    
-        let found = [...content.matchAll(/http[s]*:\/\/[a-z\-_0-9\/.]+\.[a-z.]{2,3}\/[a-z0-9\-_\/._~:?#\[\]@!$&'()*+,;=%]*[a-z0-9]+\.(:?jpg|jpeg|png|gif)/gi)].map(match => match[0]);
-        if (found.length <= 3) {
-            found = []
-        } else {
-            found = JSON.stringify(found.slice(4));
-        }
-        Gurgle.cache[term] = {timestamp: Date.now(), found};
-        res.send(found);
+
+        // |<span aria-hidden="true">(\$\d+\.\d+)<\/span>
+        let found = [...content.matchAll(/<span class="a-offscreen">(\$\d+\.\d+)<\/span>/g)].map(m => m[1]).filter(m => m);
+
+        // Gurgle.cache[term] = {timestamp: Date.now(), found};
+        res.send(JSON.stringify(found));
         
         await page.close();
 
