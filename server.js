@@ -48,19 +48,23 @@ class Gurgle {
         }
     
         await page.goto("https://www.amazon.ca/dp/" + term);
-    
-        const content = await page.content();
-
-        // |<span aria-hidden="true">(\$\d+\.\d+)<\/span>
-        let found = [...content.matchAll(/<span class="a-offscreen">(\$\d+\.\d+)<\/span>/g)].map(m => m[1]).filter(m => m);
-
-        // Gurgle.cache[term] = {timestamp: Date.now(), found};
-        res.send(JSON.stringify(found));
         
-        await page.close();
+        try {
+            const content = await page.content();
 
-        if (!f) {
-            Gurgle.pages.push(await Gurgle.browser.newPage());
+            // |<span aria-hidden="true">(\$\d+\.\d+)<\/span>
+            let found = [...content.matchAll(/<span class="a-offscreen">(\$\d+\.\d+)<\/span>/g)].map(m => m[1]).filter(m => m);
+    
+            // Gurgle.cache[term] = {timestamp: Date.now(), found};
+            res.send(JSON.stringify(found));
+        } catch (e) {
+            res.send(JSON.stringify(e))
+        } finally {
+            await page.close();
+
+            if (!f) {
+                Gurgle.pages.push(await Gurgle.browser.newPage());
+            }
         }
     }
 }
